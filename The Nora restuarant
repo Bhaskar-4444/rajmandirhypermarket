@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Restaurant Menu</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DB_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MSG_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let cart = {};
+
+    function addItem(item, price) {
+      cart[item] = cart[item] || { qty: 0, price };
+      cart[item].qty++;
+      renderCart();
+    }
+
+    function removeItem(item) {
+      if (cart[item] && cart[item].qty > 0) {
+        cart[item].qty--;
+        if (cart[item].qty === 0) delete cart[item];
+        renderCart();
+      }
+    }
+
+    function renderCart() {
+      const container = document.getElementById("cart-items");
+      container.innerHTML = '';
+      let total = 0;
+      for (const [item, { qty, price }] of Object.entries(cart)) {
+        total += qty * price;
+        container.innerHTML += `<div>${item} x${qty} - ₹${qty * price}</div>`;
+      }
+      document.getElementById("total").innerText = `Total: ₹${total}`;
+    }
+
+    function payNow() {
+      const orderId = "order-" + new Date().getTime();
+      db.ref('orders/' + orderId).set({
+        cart: cart,
+        status: "pending"
+      });
+      alert("Order sent to kitchen! Please wait...");
+      document.getElementById("order-status").style.display = "block";
+    }
+
+    function markComplete() {
+      document.getElementById("order-status").innerText = "Order Ready!";
+    }
+  </script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-4xl mx-auto p-4">
+    <h1 class="text-2xl font-bold text-center mb-6">Welcome to QR Menu</h1>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded shadow">
+        <img src="https://i.imgur.com/zvZxk1J.jpg" class="rounded mb-2" alt="Dal Makhni">
+        <h2 class="text-lg font-semibold">Dal Makhni</h2>
+        <p>₹120 (Full Plate)</p>
+        <div class="flex space-x-2 mt-2">
+          <button onclick="addItem('Dal Makhni', 120)" class="bg-green-500 text-white px-2 rounded">+</button>
+          <button onclick="removeItem('Dal Makhni')" class="bg-red-500 text-white px-2 rounded">-</button>
+        </div>
+      </div>
+      <script>
+        const foodItems = [
+          { name: "Paneer Butter Masala", price: 150, img: "https://i.imgur.com/8n5RMlL.jpg" },
+          { name: "Chole Bhature", price: 100, img: "https://i.imgur.com/y7rNYAw.jpg" },
+          { name: "Butter Naan", price: 30, img: "https://i.imgur.com/kTb26mw.jpg" },
+          { name: "Veg Biryani", price: 130, img: "https://i.imgur.com/SGSsxmp.jpg" },
+          { name: "Aloo Paratha", price: 40, img: "https://i.imgur.com/4vSeG1D.jpg" },
+          { name: "Rajma Chawal", price: 110, img: "https://i.imgur.com/NVn0RGG.jpg" },
+          { name: "Masala Dosa", price: 90, img: "https://i.imgur.com/WZpGB07.jpg" },
+          { name: "Idli Sambhar", price: 60, img: "https://i.imgur.com/A3YroV4.jpg" },
+          { name: "Samosa", price: 20, img: "https://i.imgur.com/VD8nRsd.jpg" },
+          { name: "Tandoori Roti", price: 15, img: "https://i.imgur.com/GyP8RBr.jpg" },
+          { name: "Mix Veg", price: 120, img: "https://i.imgur.com/O4eJ1r0.jpg" },
+          { name: "Palak Paneer", price: 140, img: "https://i.imgur.com/O8jmbKx.jpg" },
+          { name: "Baingan Bharta", price: 100, img: "https://i.imgur.com/BVGojvE.jpg" },
+          { name: "Pav Bhaji", price: 80, img: "https://i.imgur.com/c0WfjL0.jpg" },
+          { name: "Dhokla", price: 50, img: "https://i.imgur.com/UNtsqR3.jpg" },
+          { name: "Lassi", price: 40, img: "https://i.imgur.com/TXlBDtR.jpg" },
+          { name: "Kadai Paneer", price: 160, img: "https://i.imgur.com/c9Z1nWH.jpg" },
+          { name: "Shahi Paneer", price: 170, img: "https://i.imgur.com/UkFJ6bp.jpg" },
+          { name: "Gulab Jamun", price: 30, img: "https://i.imgur.com/yl5JypB.jpg" },
+          { name: "Rasgulla", price: 25, img: "https://i.imgur.com/0IabX8u.jpg" }
+        ];
+
+        foodItems.forEach(item => {
+          document.write(`
+            <div class='bg-white p-4 rounded shadow'>
+              <img src="${item.img}" class="rounded mb-2" alt="${item.name}">
+              <h2 class="text-lg font-semibold">${item.name}</h2>
+              <p>₹${item.price}</p>
+              <div class="flex space-x-2 mt-2">
+                <button onclick="addItem('${item.name}', ${item.price})" class="bg-green-500 text-white px-2 rounded">+</button>
+                <button onclick="removeItem('${item.name}')" class="bg-red-500 text-white px-2 rounded">-</button>
+              </div>
+            </div>
+          `);
+        });
+      </script>
+    </div>
+
+    <div class="mt-6 p-4 bg-white shadow rounded">
+      <h2 class="text-xl font-bold mb-2">Your Order</h2>
+      <div id="cart-items" class="mb-2"></div>
+      <div id="total" class="font-semibold mb-4">Total: ₹0</div>
+      <button onclick="payNow()" class="bg-blue-600 text-white px-4 py-2 rounded">Pay Now</button>
+    </div>
+
+    <div id="order-status" style="display:none;" class="mt-6 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+      Order sent to kitchen. Waiting for confirmation...
+      <br><button onclick="markComplete()" class="mt-2 bg-green-600 text-white px-3 py-1 rounded">Mark Complete</button>
+    </div>
+  </div>
+</body>
+</html>
